@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Classes
+﻿namespace All_Decks.Objects
 {
 	public class PurchaseUrls
 	{
@@ -10,4 +10,3 @@
         public string TcgplayerEtched { get; set; }
 	}
 }
-

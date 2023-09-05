@@ -13,6 +13,8 @@ if (File.Exists(pathFileName))
     string jsonString = File.ReadAllText(pathFileName);
     Deck deck = JsonSerializer.Deserialize<Deck>(jsonString, jsonSerializerOptions);
 
+    deck.Data.FileName = fileName;
+
     foreach (var commander in deck.Data.Commander)
     {
         commander.FileName = fileName;

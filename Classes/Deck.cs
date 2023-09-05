@@ -1,4 +1,6 @@
-﻿namespace All_Decks.Classes
+﻿using All_Decks.Objects;
+
+namespace All_Decks.Classes
 {
 	public class Deck
 	{

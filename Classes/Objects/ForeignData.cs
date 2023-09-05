@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Classes
+﻿namespace All_Decks.Objects
 {
 	public class ForeignData
 	{
@@ -11,4 +11,3 @@
 		public string Type { get; set; }
 	}
 }
-

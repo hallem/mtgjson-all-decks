@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Classes
+﻿namespace All_Decks.Objects
 {
 	public struct Rulings
 	{
@@ -6,4 +6,3 @@
 		public string Text { get; set; }
 	}
 }
-

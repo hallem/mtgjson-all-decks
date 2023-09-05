@@ -1,11 +1,13 @@
 ﻿using System.Text.Json;
+using All_Decks.Helpers;
 
-namespace All_Decks.Classes
+namespace All_Decks.Objects
 {
-	public class SourceProducts
+	public class LeadershipSkills
 	{
-		public List<string> Foil { get; set; }
-		public List<string> NonFoil { get; set; }
+		public bool Brawl { get; set; }
+		public bool Commander { get; set; }
+		public bool Oathbreaker { get; set; }
 
         public override string ToString()
         {
@@ -19,10 +21,4 @@ namespace All_Decks.Classes
             return serializedJson;
         }
     }
-
-    public class LowercaseNamingPolicy : JsonNamingPolicy
-    {
-        public override string ConvertName(string name) => name.ToLower();
-    }
 }
-

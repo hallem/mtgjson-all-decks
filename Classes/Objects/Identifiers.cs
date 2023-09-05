@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Classes
+﻿namespace All_Decks.Objects
 {
 	public class Identifiers
 	{
@@ -22,4 +22,3 @@
         public string TcgplayerEtchedProductId { get; set; }
 	}
 }
-

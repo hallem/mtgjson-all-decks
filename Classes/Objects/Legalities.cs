@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Classes
+﻿namespace All_Decks.Objects
 {
 	public class Legalities
 	{
@@ -23,4 +23,3 @@
         public string Vintage { get; set; }
 	}
 }
-
