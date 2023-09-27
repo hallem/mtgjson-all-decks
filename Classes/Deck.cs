@@ -1,6 +1,6 @@
-﻿using All_Decks.Objects;
+﻿using AllDecks.Objects;
 
-namespace All_Decks.Classes
+namespace AllDecks.Classes
 {
 	public class Deck
 	{
@@ -8,16 +8,32 @@ namespace All_Decks.Classes
 		public Data Data { get; set; }
 	}
 
-	public class Data
+	public class DeckSlim
 	{
-		public string Code { get; set; }
-		public List<CardDeck> Commander { get; set; }
-		public string FileName { get; set; }
-		public List<CardDeck> MainBoard { get; set; }
-		public string Name { get; set; }
-		public string ReleaseDate { get; set; }
-		public List<CardDeck> SideBoard { get; set; }
-		public string Type { get; set; }
+		public Meta Meta { get; set; }
+		public DataSlim Data { get; set; }
 	}
+
+    public class DataCommon
+    {
+        public string Code { get; set; }
+        public string FileName { get; set; }
+        public string Name { get; set; }
+        public string ReleaseDate { get; set; }
+        public string Type { get; set; }
+    }
+
+    public class Data : DataCommon
+    {
+        public List<CardDeck> Commander { get; set; }
+        public List<CardDeck> MainBoard { get; set; }
+        public List<CardDeck> SideBoard { get; set; }
+    }
+    public class DataSlim : DataCommon
+    {
+        public List<CardDeckSlim> Commander { get; set; }
+        public List<CardDeckSlim> MainBoard { get; set; }
+        public List<CardDeckSlim> SideBoard { get; set; }
+    }
 }
 

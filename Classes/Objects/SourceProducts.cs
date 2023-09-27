@@ -1,7 +1,7 @@
 ﻿using System.Text.Json;
-using All_Decks.Helpers;
+using AllDecks.Helpers;
 
-namespace All_Decks.Objects
+namespace AllDecks.Objects
 {
     public class SourceProducts
 	{
@@ -17,7 +17,7 @@ namespace All_Decks.Objects
                     WriteIndented = false
                 });
 
-            return serializedJson;
+            return serializedJson.Replace("\"", "\"\"");
         }
     }
 }

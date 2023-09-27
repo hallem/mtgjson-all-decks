@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Objects
+﻿namespace AllDecks.Objects
 {
 	public class Legalities
 	{
@@ -13,8 +13,10 @@
         public string HistoricBrawl { get; set; }
         public string Legacy { get; set; }
         public string Modern { get; set; }
+        public string OathBreaker { get; set; }
         public string OldSchool { get; set; }
         public string Pauper { get; set; }
+        public string PauperCommander { get; set; }
         public string Penny { get; set; }
         public string Pioneer { get; set; }
         public string Predh { get; set; }

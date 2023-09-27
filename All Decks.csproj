@@ -3,13 +3,15 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>All_Decks</RootNamespace>
+    <RootNamespace>AllDecks</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
 
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <LangVersion>latestmajor</LangVersion>
+    <WarningLevel>4</WarningLevel>
+    <AssemblyName>AllDecks</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <LangVersion>latestmajor</LangVersion>
@@ -17,11 +19,25 @@
   <ItemGroup>
     <None Remove="Classes\" />
     <None Remove="Classes\Helpers\" />
+    <None Remove="Classes\Constants\" />
     <None Remove="Classes\Objects\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Classes\" />
     <Folder Include="Classes\Helpers\" />
+    <Folder Include="Classes\Constants\" />
     <Folder Include="Classes\Objects\" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+  </ItemGroup>
+  <ProjectExtensions>
+    <MonoDevelop>
+      <Properties>
+        <Policies>
+          <StandardHeader Text="" IncludeInNewFiles="True" />
+        </Policies>
+      </Properties>
+    </MonoDevelop>
+  </ProjectExtensions>
 </Project>

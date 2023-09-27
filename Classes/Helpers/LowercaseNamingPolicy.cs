@@ -1,6 +1,6 @@
 ﻿using System.Text.Json;
 
-namespace All_Decks.Helpers
+namespace AllDecks.Helpers
 {
     public class LowercaseNamingPolicy : JsonNamingPolicy
     {

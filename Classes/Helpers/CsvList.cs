@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace All_Decks.Helpers
+namespace AllDecks.Helpers
 {
     public class CsvList<T> : List<T>
     {
@@ -8,7 +8,7 @@ namespace All_Decks.Helpers
         {
             StringBuilder result = new();
 
-            for (int i = 0; i <= base.Count; i++)
+            for (int i = 0; i < base.Count; i++)
             {
                 result.Append(this[i]);
 

@@ -1,12 +1,12 @@
 ﻿using System.Text.Json;
-using All_Decks.Helpers;
+using AllDecks.Helpers;
 
-namespace All_Decks.Objects
+namespace AllDecks.Objects
 {
 	public class RelatedCards
 	{
-        public string ReverseRelated { get; set; }
-		public string Spellbook { get; set; }
+        public List<string> ReverseRelated { get; set; }
+		public List<string> Spellbook { get; set; }
 
         public override string ToString()
         {
@@ -17,7 +17,7 @@ namespace All_Decks.Objects
                     WriteIndented = false
                 });
 
-            return serializedJson;
+            return serializedJson.Replace("\"", "\"\"");
         }
     }
 }

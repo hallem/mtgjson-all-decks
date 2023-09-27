@@ -1,4 +1,4 @@
-﻿namespace All_Decks.Objects
+﻿namespace AllDecks.Objects
 {
 	public struct Rulings
 	{
