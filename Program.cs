@@ -3,7 +3,6 @@ using System.Data.SQLite;
 using System.Text;
 using System.Text.Json;
 using AllDecks.Classes;
-using AllDecks.Constants;
 using AllDecks.Objects;
 
 /*
@@ -14,23 +13,35 @@ using AllDecks.Objects;
 5) Add create table logic controlled by a flag for the All Printings DB
 */
 
-internal class Program
+namespace AllDecks;
+
+internal static class Program
 {
     private static void Main(string[] args)
     {
-        bool processSlim = false;
-        bool archiveFiles = true;
-        string path = "../../../../data/AllDeckFiles";
+        const bool processSlim = true;
+        const bool archiveFiles = false;
+        const bool createTables = true;
+        const bool useSeperateDB = false;
+        const string path = "../../../../data/AllDeckFiles";
         string[] fileNames = Directory.GetFiles(path, "*.json").OrderBy(f => f).ToArray();
 
-        SQLiteConnection connection = new("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;");
-        //SQLiteConnection connection = new("DataSource=../../../../data/AllPrintings.sqlite;Version=3;New=False;");
+        SQLiteConnection connection = useSeperateDB
+            ? new SQLiteConnection("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;")
+            : new SQLiteConnection("DataSource=../../../../data/AllPrintings.sqlite;Version=3;New=False;");
 
         connection.Open();
 
-        bool wasSuccessfull = true,
-            returnValue;
+        bool wasSuccessful = true;
         StringBuilder builder = new();
+
+        if (createTables)
+        {
+            builder.AppendLine(Constants.Constants.CreateDecksStatement);
+            builder.AppendLine();
+            builder.AppendLine(Constants.Constants.CreateDeckListsStatement);
+            builder.AppendLine();
+        }
 
         for (int i = 0; i < fileNames.Length; i++)
         {
@@ -39,10 +50,9 @@ internal class Program
 
             Console.Write("[{1}] Processing {0}: ", fileNameNoExtension, i);
 
-            if (processSlim)
-                returnValue = ProcessDeckSlim(builder, pathFileName, fileNameNoExtension);
-            else
-                returnValue = ProcessDeck(builder, pathFileName, fileNameNoExtension);
+            bool returnValue = processSlim
+                ? ProcessDeckSlim(builder, pathFileName, fileNameNoExtension)
+                : ProcessDeck(builder, pathFileName, fileNameNoExtension);
 
             if (!returnValue)
                 continue;
@@ -65,13 +75,13 @@ internal class Program
                 {
                     transaction.Rollback();
 
-                    wasSuccessfull = false;
+                    wasSuccessful = false;
 
                     Console.WriteLine(ex.Message);
                 }
             }
 
-            if (wasSuccessfull && archiveFiles)
+            if (wasSuccessful && archiveFiles)
             {
                 try
                 {
@@ -100,12 +110,12 @@ internal class Program
 
     private static void Process_Helper(StringBuilder builder, DataCommon data)
     {
-        builder.Append(Constants.insertDecksStatement);
-        builder.AppendFormat("\t\"{0}\",\n", data.Code);
-        builder.AppendFormat("\t\"{0}\",\n", data.FileName);
-        builder.AppendFormat("\t\"{0}\",\n", data.Name);
-        builder.AppendFormat("\t\"{0}\",\n", data.ReleaseDate);
-        builder.AppendFormat("\t\"{0}\"\n", data.Type);
+        builder.Append(Constants.Constants.InsertDecksStatement);
+        builder.Append($"\t\"{data.Code}\",\n");
+        builder.Append($"\t\"{data.FileName}\",\n");
+        builder.Append($"\t\"{data.Name}\",\n");
+        builder.Append($"\t\"{data.ReleaseDate}\",\n");
+        builder.Append($"\t\"{data.Type}\"\n");
         builder.AppendLine(");");
         builder.AppendLine();
     }
@@ -114,14 +124,14 @@ internal class Program
     {
         foreach (var card in cards)
         {
-            builder.Append(Constants.insertDeckListsStatement);
-            builder.AppendFormat("\t{0},\n", card.Count);
-            builder.AppendFormat("\t\"{0}\",\n", card.FileName);
-            builder.AppendFormat("\t\"{0}\",\n", card.IsCommander);
-            builder.AppendFormat("\t\"{0}\",\n", card.IsFoil);
-            builder.AppendFormat("\t\"{0}\",\n", card.IsMainBoard);
-            builder.AppendFormat("\t\"{0}\",\n", card.IsSideBoard);
-            builder.AppendFormat("\t\"{0}\"\n", card.UUID);
+            builder.Append(Constants.Constants.InsertDeckListsStatement);
+            builder.Append($"\t{card.Count},\n");
+            builder.Append($"\t\"{card.FileName}\",\n");
+            builder.Append($"\t\"{card.IsCommander}\",\n");
+            builder.Append($"\t\"{card.IsFoil}\",\n");
+            builder.Append($"\t\"{card.IsMainBoard}\",\n");
+            builder.Append($"\t\"{card.IsSideBoard}\",\n");
+            builder.Append($"\t\"{card.Uuid}\"\n");
             builder.AppendLine(");");
             builder.AppendLine();
         }
@@ -186,401 +196,401 @@ internal class Program
         {
             #region Insert Into Cards
 
-            builder.Append(Constants.insertCardsStatement);
+            builder.Append(Constants.Constants.InsertCardsStatement);
 
             if (string.IsNullOrWhiteSpace(card.Artist))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Artist.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.Artist.Replace("\"", "\"\"")}\",\n");
 
             if (card.ArtistIds == null || card.ArtistIds.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.ArtistIds);
+                builder.Append($"\t\"{card.ArtistIds}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.AsciiName))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.AsciiName);
+                builder.Append($"\t\"{card.AsciiName}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.AttractionLights))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.AttractionLights);
+                builder.Append($"\t\"{card.AttractionLights}\",\n");
 
             if (card.Availability == null || card.Availability.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Availability);
+                builder.Append($"\t\"{card.Availability}\",\n");
 
             if (card.BoosterTypes == null || card.BoosterTypes.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.BoosterTypes);
+                builder.Append($"\t\"{card.BoosterTypes}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.BorderColor))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.BorderColor);
+                builder.Append($"\t\"{card.BorderColor}\",\n");
 
             if (card.CardParts == null || card.CardParts.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.CardParts);
+                builder.Append($"\t\"{card.CardParts}\",\n");
 
             if (card.ColorIdentity == null || card.ColorIdentity.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.ColorIdentity);
+                builder.Append($"\t\"{card.ColorIdentity}\",\n");
 
             if (card.ColorIndicator != null && card.ColorIndicator.Count > 0)
-                builder.AppendFormat("\t\"{0}\",\n", string.Join(" ,", card.ColorIndicator));
+                builder.Append($"\t\"{string.Join(" ,", card.ColorIndicator)}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (card.Colors == null || card.Colors.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Colors);
+                builder.Append($"\t\"{card.Colors}\",\n");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.Count);
+            builder.Append($"\t\"{card.Count}\",\n");
 
             if (card.Defense.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.Defense);
+                builder.Append($"\t\"{card.Defense}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (string.IsNullOrWhiteSpace(card.DuelDeck))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.DuelDeck);
+                builder.Append($"\t\"{card.DuelDeck}\",\n");
 
             if (card.EdhrecRank.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.EdhrecRank);
+                builder.Append($"\t\"{card.EdhrecRank}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (card.EdhrecSaltiness.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.EdhrecSaltiness);
+                builder.Append($"\t\"{card.EdhrecSaltiness}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (card.FaceConvertedManaCost.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.FaceConvertedManaCost);
+                builder.Append($"\t\"{card.FaceConvertedManaCost}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (string.IsNullOrWhiteSpace(card.FaceFlavorName))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FaceFlavorName);
+                builder.Append($"\t\"{card.FaceFlavorName}\",\n");
 
             if (card.FaceManaValue.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.FaceManaValue);
+                builder.Append($"\t\"{card.FaceManaValue}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (string.IsNullOrWhiteSpace(card.FaceName))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FaceName);
+                builder.Append($"\t\"{card.FaceName}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.FileName))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FileName);
+                builder.Append($"\t\"{card.FileName}\",\n");
 
             if (card.Finishes == null || card.Finishes.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Finishes);
+                builder.Append($"\t\"{card.Finishes}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.FlavorName))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FlavorName);
+                builder.Append($"\t\"{card.FlavorName}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.FlavorText))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FlavorText.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.FlavorText.Replace("\"", "\"\"")}\",\n");
 
             if (card.FrameEffects == null || card.FrameEffects.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FrameEffects);
+                builder.Append($"\t\"{card.FrameEffects}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.FrameVersion))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.FrameVersion);
+                builder.Append($"\t\"{card.FrameVersion}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Hand))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Hand);
+                builder.Append($"\t\"{card.Hand}\",\n");
 
             if (card.HasAlternativeDeckLimit.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.HasAlternativeDeckLimit);
+                builder.Append($"\t\"{card.HasAlternativeDeckLimit}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
             if (card.HasContentWarning.HasValue)
-                builder.AppendFormat("\t\"{0}\",\n", card.HasContentWarning);
+                builder.Append($"\t\"{card.HasContentWarning}\",\n");
             else
                 builder.AppendLine("\tnull,");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.HasFoil);
-            builder.AppendFormat("\t\"{0}\",\n", card.HasNonFoil);
+            builder.Append($"\t\"{card.HasFoil}\",\n");
+            builder.Append($"\t\"{card.HasNonFoil}\",\n");
 
             if (!card.IsAlternative.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsAlternative);
+                builder.Append($"\t\"{card.IsAlternative}\",\n");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.IsCommander);
-            builder.AppendFormat("\t\"{0}\",\n", card.IsFoil);
+            builder.Append($"\t\"{card.IsCommander}\",\n");
+            builder.Append($"\t\"{card.IsFoil}\",\n");
 
             if (!card.IsFullArt.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsFullArt);
+                builder.Append($"\t\"{card.IsFullArt}\",\n");
 
             if (!card.IsFunny.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsFunny);
+                builder.Append($"\t\"{card.IsFunny}\",\n");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.IsMainBoard);
+            builder.Append($"\t\"{card.IsMainBoard}\",\n");
 
             if (!card.IsOnlineOnly.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsOnlineOnly);
+                builder.Append($"\t\"{card.IsOnlineOnly}\",\n");
 
             if (!card.IsOversized.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsOversized);
+                builder.Append($"\t\"{card.IsOversized}\",\n");
 
             if (!card.IsPromo.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsPromo);
+                builder.Append($"\t\"{card.IsPromo}\",\n");
 
             if (!card.IsRebalanced.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsRebalanced);
+                builder.Append($"\t\"{card.IsRebalanced}\",\n");
 
             if (!card.IsReprint.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsReprint);
+                builder.Append($"\t\"{card.IsReprint}\",\n");
 
             if (!card.IsReserved.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsReserved);
+                builder.Append($"\t\"{card.IsReserved}\",\n");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.IsSideBoard);
+            builder.Append($"\t\"{card.IsSideBoard}\",\n");
 
             if (!card.IsStarter.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsStarter);
+                builder.Append($"\t\"{card.IsStarter}\",\n");
 
             if (!card.IsStorySpotlight.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsStorySpotlight);
+                builder.Append($"\t\"{card.IsStorySpotlight}\",\n");
 
             if (!card.IsTextless.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsTextless);
+                builder.Append($"\t\"{card.IsTextless}\",\n");
 
             if (!card.IsTimeshifted.HasValue)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.IsTimeshifted);
+                builder.Append($"\t\"{card.IsTimeshifted}\",\n");
 
             if (card.Keywords == null || card.Keywords.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Keywords);
+                builder.Append($"\t\"{card.Keywords}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Language))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Language);
+                builder.Append($"\t\"{card.Language}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Layout))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Layout);
+                builder.Append($"\t\"{card.Layout}\",\n");
 
             if (card.LeadershipSkills == null)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.LeadershipSkills);
+                builder.Append($"\t\"{card.LeadershipSkills}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Life))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Life);
+                builder.Append($"\t\"{card.Life}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Loyalty))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Loyalty);
+                builder.Append($"\t\"{card.Loyalty}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.ManaCost))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.ManaCost);
+                builder.Append($"\t\"{card.ManaCost}\",\n");
 
-            builder.AppendFormat("\t\"{0}\",\n", card.ManaValue);
+            builder.Append($"\t\"{card.ManaValue}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Name))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Name.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.Name.Replace("\"", "\"\"")}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Number))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Number);
+                builder.Append($"\t\"{card.Number}\",\n");
 
             if (card.OriginalPrintings == null || card.OriginalPrintings.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.OriginalPrintings);
+                builder.Append($"\t\"{card.OriginalPrintings}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.OriginalReleaseDate))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.OriginalReleaseDate);
+                builder.Append($"\t\"{card.OriginalReleaseDate}\",\n");
 
             if (string.IsNullOrEmpty(card.OriginalText))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.OriginalText.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.OriginalText.Replace("\"", "\"\"")}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.OriginalType))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.OriginalType);
+                builder.Append($"\t\"{card.OriginalType}\",\n");
 
             if (card.OtherFaceIds == null || card.OtherFaceIds.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.OtherFaceIds);
+                builder.Append($"\t\"{card.OtherFaceIds}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Power))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Power);
+                builder.Append($"\t\"{card.Power}\",\n");
 
             if (card.Printings == null || card.Printings.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Printings);
+                builder.Append($"\t\"{card.Printings}\",\n");
 
             if (card.PromoTypes == null || card.PromoTypes.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.PromoTypes);
+                builder.Append($"\t\"{card.PromoTypes}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Rarity))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Rarity);
+                builder.Append($"\t\"{card.Rarity}\",\n");
 
             if (card.RebalancedPrintings == null || card.RebalancedPrintings.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.RebalancedPrintings);
+                builder.Append($"\t\"{card.RebalancedPrintings}\",\n");
 
             if (card.RelatedCards == null)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.RelatedCards);
+                builder.Append($"\t\"{card.RelatedCards}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.SecurityStamp))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.SecurityStamp);
+                builder.Append($"\t\"{card.SecurityStamp}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.SetCode))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.SetCode);
+                builder.Append($"\t\"{card.SetCode}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Side))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Side);
+                builder.Append($"\t\"{card.Side}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Signature))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Signature.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.Signature.Replace("\"", "\"\"")}\",\n");
 
             if (card.SourceProducts == null)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.SourceProducts);
+                builder.Append($"\t\"{card.SourceProducts}\",\n");
 
             if (card.Subsets == null || card.Subsets.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Subsets);
+                builder.Append($"\t\"{card.Subsets}\",\n");
 
             if (card.Subtypes == null || card.Subtypes.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Subtypes);
+                builder.Append($"\t\"{card.Subtypes}\",\n");
 
             if (card.Supertypes == null || card.Supertypes.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Supertypes);
+                builder.Append($"\t\"{card.Supertypes}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Text))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Text.Replace("\"", "\"\""));
+                builder.Append($"\t\"{card.Text.Replace("\"", "\"\"")}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Toughness))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Toughness);
+                builder.Append($"\t\"{card.Toughness}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Type))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Type);
+                builder.Append($"\t\"{card.Type}\",\n");
 
             if (card.Types == null || card.Types.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Types);
+                builder.Append($"\t\"{card.Types}\",\n");
 
-            if (string.IsNullOrWhiteSpace(card.UUID))
+            if (string.IsNullOrWhiteSpace(card.Uuid))
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.UUID);
+                builder.Append($"\t\"{card.Uuid}\",\n");
 
             if (card.Variations == null || card.Variations.Count == 0)
                 builder.AppendLine("\tnull,");
             else
-                builder.AppendFormat("\t\"{0}\",\n", card.Variations);
+                builder.Append($"\t\"{card.Variations}\",\n");
 
             if (string.IsNullOrWhiteSpace(card.Watermark))
                 builder.AppendLine("\tnull");
             else
-                builder.AppendFormat("\t\"{0}\"\n", card.Watermark);
+                builder.Append($"\t\"{card.Watermark}\"\n");
 
             builder.AppendLine(");");
             builder.AppendLine();
@@ -593,41 +603,41 @@ internal class Program
             {
                 foreach (var foreignData in card.ForeignData)
                 {
-                    builder.Append(Constants.insertForeignDataStatement);
+                    builder.Append(Constants.Constants.InsertForeignDataStatement);
 
                     if (string.IsNullOrWhiteSpace(foreignData.FaceName))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.FaceName);
+                        builder.Append($"\t\"{foreignData.FaceName}\",\n");
 
                     if (string.IsNullOrWhiteSpace(foreignData.FlavorText))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.FlavorText.Replace("\"", "\"\""));
+                        builder.Append($"\t\"{foreignData.FlavorText.Replace("\"", "\"\"")}\",\n");
 
                     if (string.IsNullOrWhiteSpace(foreignData.Language))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.Language);
+                        builder.Append($"\t\"{foreignData.Language}\",\n");
 
-                    builder.AppendFormat("\t{0},\n", foreignData.MultiverseId);
+                    builder.Append($"\t{foreignData.MultiverseId},\n");
 
                     if (string.IsNullOrWhiteSpace(foreignData.Name))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.Name.Replace("\"", "\"\""));
+                        builder.Append($"\t\"{foreignData.Name.Replace("\"", "\"\"")}\",\n");
 
                     if (string.IsNullOrWhiteSpace(foreignData.Text))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.Text.Replace("\"", "\"\""));
+                        builder.Append($"\t\"{foreignData.Text.Replace("\"", "\"\"")}\",\n");
 
                     if (string.IsNullOrWhiteSpace(foreignData.Type))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", foreignData.Type);
+                        builder.Append($"\t\"{foreignData.Type}\",\n");
 
-                    builder.AppendFormat("\t\"{0}\"\n", card.UUID);
+                    builder.Append($"\t\"{card.Uuid}\"\n");
 
                     builder.AppendLine(");");
                 }
@@ -641,99 +651,99 @@ internal class Program
 
             if (card.Identifiers != null)
             {
-                builder.Append(Constants.insertIdentifiersStatement);
+                builder.Append(Constants.Constants.InsertIdentifiersStatement);
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardKingdomEtchedId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.CardKingdomEtchedId);
+                    builder.Append($"\t\"{card.Identifiers.CardKingdomEtchedId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardKingdomFoilId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.CardKingdomFoilId);
+                    builder.Append($"\t\"{card.Identifiers.CardKingdomFoilId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardKingdomId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.CardKingdomId);
+                    builder.Append($"\t\"{card.Identifiers.CardKingdomId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardsphereId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.CardsphereId);
+                    builder.Append($"\t\"{card.Identifiers.CardsphereId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.McmId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.McmId);
+                    builder.Append($"\t\"{card.Identifiers.McmId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.McmMetaId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.McmMetaId);
+                    builder.Append($"\t\"{card.Identifiers.McmMetaId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgArenaId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgArenaId);
+                    builder.Append($"\t\"{card.Identifiers.MtgArenaId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgjsonFoilVersionId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgjsonFoilVersionId);
+                    builder.Append($"\t\"{card.Identifiers.MtgjsonFoilVersionId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgjsonNonFoilVersionId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgjsonNonFoilVersionId);
+                    builder.Append($"\t\"{card.Identifiers.MtgjsonNonFoilVersionId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgjsonV4Id))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgjsonV4Id);
+                    builder.Append($"\t\"{card.Identifiers.MtgjsonV4Id}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgoFoilId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgoFoilId);
+                    builder.Append($"\t\"{card.Identifiers.MtgoFoilId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MtgoId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MtgoId);
+                    builder.Append($"\t\"{card.Identifiers.MtgoId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.MultiverseId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.MultiverseId);
+                    builder.Append($"\t\"{card.Identifiers.MultiverseId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.ScryfallId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.ScryfallId);
+                    builder.Append($"\t\"{card.Identifiers.ScryfallId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.ScryfallIllustrationId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.ScryfallIllustrationId);
+                    builder.Append($"\t\"{card.Identifiers.ScryfallIllustrationId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.ScryfallOracleId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.ScryfallOracleId);
+                    builder.Append($"\t\"{card.Identifiers.ScryfallOracleId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.TcgplayerEtchedProductId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.TcgplayerEtchedProductId);
+                    builder.Append($"\t\"{card.Identifiers.TcgplayerEtchedProductId}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.TcgplayerProductId))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Identifiers.TcgplayerProductId);
+                    builder.Append($"\t\"{card.Identifiers.TcgplayerProductId}\",\n");
 
-                builder.AppendFormat("\t\"{0}\"\n", card.UUID);
+                builder.Append($"\t\"{card.Uuid}\"\n");
 
                 builder.AppendLine(");");
                 builder.AppendLine();
@@ -745,114 +755,114 @@ internal class Program
 
             if (card.Legalities != null)
             {
-                builder.Append(Constants.insertLegalitiesStatement);
+                builder.Append(Constants.Constants.InsertLegalitiesStatement);
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Alchemy))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Alchemy);
+                    builder.Append($"\t\"{card.Legalities.Alchemy}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Brawl))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Brawl);
+                    builder.Append($"\t\"{card.Legalities.Brawl}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Commander))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Commander);
+                    builder.Append($"\t\"{card.Legalities.Commander}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Duel))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Duel);
+                    builder.Append($"\t\"{card.Legalities.Duel}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Explorer))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Explorer);
+                    builder.Append($"\t\"{card.Legalities.Explorer}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Future))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Future);
+                    builder.Append($"\t\"{card.Legalities.Future}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Gladiator))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Gladiator);
+                    builder.Append($"\t\"{card.Legalities.Gladiator}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Historic))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Historic);
+                    builder.Append($"\t\"{card.Legalities.Historic}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.HistoricBrawl))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.HistoricBrawl);
+                    builder.Append($"\t\"{card.Legalities.HistoricBrawl}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Legacy))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Legacy);
+                    builder.Append($"\t\"{card.Legalities.Legacy}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Modern))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Modern);
+                    builder.Append($"\t\"{card.Legalities.Modern}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.OathBreaker))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.OathBreaker);
+                    builder.Append($"\t\"{card.Legalities.OathBreaker}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.OldSchool))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.OldSchool);
+                    builder.Append($"\t\"{card.Legalities.OldSchool}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Pauper))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Pauper);
+                    builder.Append($"\t\"{card.Legalities.Pauper}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.PauperCommander))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.PauperCommander);
+                    builder.Append($"\t\"{card.Legalities.PauperCommander}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Penny))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Penny);
+                    builder.Append($"\t\"{card.Legalities.Penny}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Pioneer))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Pioneer);
+                    builder.Append($"\t\"{card.Legalities.Pioneer}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Predh))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Predh);
+                    builder.Append($"\t\"{card.Legalities.Predh}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.PreModern))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.PreModern);
+                    builder.Append($"\t\"{card.Legalities.PreModern}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Standard))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.Legalities.Standard);
+                    builder.Append($"\t\"{card.Legalities.Standard}\",\n");
 
-                builder.AppendFormat("\t\"{0}\",\n", card.UUID);
+                builder.Append($"\t\"{card.Uuid}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Vintage))
                     builder.AppendLine("\tnull");
                 else
-                    builder.AppendFormat("\t\"{0}\"\n", card.Legalities.Vintage);
+                    builder.Append($"\t\"{card.Legalities.Vintage}\"\n");
 
                 builder.AppendLine(");");
                 builder.AppendLine();
@@ -864,39 +874,39 @@ internal class Program
 
             if (card.PurchaseUrls != null)
             {
-                builder.Append(Constants.insertPurchaseUrlsStatement);
+                builder.Append(Constants.Constants.InsertPurchaseUrlsStatement);
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardKingdom))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.CardKingdom);
+                    builder.Append($"\t\"{card.PurchaseUrls.CardKingdom}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardKingdomEtched))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.CardKingdomEtched);
+                    builder.Append($"\t\"{card.PurchaseUrls.CardKingdomEtched}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardKingdomFoil))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.CardKingdomFoil);
+                    builder.Append($"\t\"{card.PurchaseUrls.CardKingdomFoil}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardMarket))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.CardMarket);
+                    builder.Append($"\t\"{card.PurchaseUrls.CardMarket}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.Tcgplayer))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.Tcgplayer);
+                    builder.Append($"\t\"{card.PurchaseUrls.Tcgplayer}\",\n");
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.TcgplayerEtched))
                     builder.AppendLine("\tnull,");
                 else
-                    builder.AppendFormat("\t\"{0}\",\n", card.PurchaseUrls.TcgplayerEtched);
+                    builder.Append($"\t\"{card.PurchaseUrls.TcgplayerEtched}\",\n");
 
-                builder.AppendFormat("\t\"{0}\"\n", card.UUID);
+                builder.Append($"\t\"{card.Uuid}\"\n");
 
                 builder.AppendLine(");");
                 builder.AppendLine();
@@ -910,19 +920,19 @@ internal class Program
             {
                 foreach (var ruling in card.Rulings)
                 {
-                    builder.Append(Constants.insertRulingsStatement);
+                    builder.Append(Constants.Constants.InsertRulingsStatement);
 
                     if (string.IsNullOrWhiteSpace(ruling.Date))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", ruling.Date);
+                        builder.Append($"\t\"{ruling.Date}\",\n");
 
                     if (string.IsNullOrWhiteSpace(ruling.Text))
                         builder.AppendLine("\tnull,");
                     else
-                        builder.AppendFormat("\t\"{0}\",\n", ruling.Text.Replace("\"", "\"\""));
+                        builder.Append($"\t\"{ruling.Text.Replace("\"", "\"\"")}\",\n");
 
-                    builder.AppendFormat("\t\"{0}\"\n", card.UUID);
+                    builder.Append($"\t\"{card.Uuid}\"\n");
 
                     builder.AppendLine(");");
                     builder.AppendLine();

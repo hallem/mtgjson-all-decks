@@ -10,7 +10,7 @@ namespace AllDecks.Objects
         public bool IsFoil { get; set; }
         public bool IsMainBoard { get; set; }
         public bool IsSideBoard { get; set; }
-        public string UUID { get; set; }
+        public string Uuid { get; set; }
     }
 
     public class CardDeck : CardDeckSlim
