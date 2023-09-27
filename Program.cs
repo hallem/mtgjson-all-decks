@@ -7,7 +7,7 @@ using AllDecks.Objects;
 
 /*
 1) Write code to work with the slim data -- DONE
-2) Write code to insert the deck informaiton into the decks table -- DONE
+2) Write code to insert the deck information into the decks table -- DONE
 3) See if #2 eliminates the name encoding issues -- IT DOES
 4) Find a way to centralize the json parse code into one method
 5) Add create table logic controlled by a flag for the All Printings DB
