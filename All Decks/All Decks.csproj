@@ -3,7 +3,6 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net7.0</TargetFramework>
-    <RootNamespace>AllDecks</RootNamespace>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>disable</Nullable>
   </PropertyGroup>
@@ -11,7 +10,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <LangVersion>latestmajor</LangVersion>
     <WarningLevel>4</WarningLevel>
-    <AssemblyName>AllDecks</AssemblyName>
+    <AssemblyName>All_Decks</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <LangVersion>latestmajor</LangVersion>
@@ -23,13 +22,17 @@
     <None Remove="Classes\Objects\" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Classes\" />
     <Folder Include="Classes\Helpers\" />
     <Folder Include="Classes\Constants\" />
     <Folder Include="Classes\Objects\" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\Common\Meta.cs">
+      <Link>Classes\Meta.cs</Link>
+    </Compile>
   </ItemGroup>
   <ProjectExtensions>
     <MonoDevelop>

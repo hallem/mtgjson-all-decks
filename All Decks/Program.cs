@@ -2,8 +2,9 @@
 using System.Data.SQLite;
 using System.Text;
 using System.Text.Json;
-using AllDecks.Classes;
-using AllDecks.Objects;
+using All_Decks.Classes;
+using All_Decks.Classes.Objects;
+using All_Decks.Classes.Constants;
 
 /*
 1) Write code to work with the slim data -- DONE
@@ -14,36 +15,21 @@ using AllDecks.Objects;
 6) Add support for command line arguments
 */
 
-namespace AllDecks;
+namespace All_Decks;
 
 internal static class Program
 {
     private static void Main(string[] args)
     {
-        const bool processSlim = true;
-        const bool archiveFiles = false;
-        const bool createTables = true;
-        // ReSharper disable once InconsistentNaming
-        const bool useSeparateDB = false;
         const string path = "../../../../data/AllDeckFiles";
         string[] fileNames = Directory.GetFiles(path, "*.json").OrderBy(f => f).ToArray();
 
-        SQLiteConnection connection = useSeparateDB
-            ? new SQLiteConnection("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;")
-            : new SQLiteConnection("DataSource=../../../../data/AllPrintings.sqlite;Version=3;New=False;");
+        SQLiteConnection connection = new ("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;");
 
         connection.Open();
 
         bool wasSuccessful = true;
         StringBuilder builder = new();
-
-        if (createTables)
-        {
-            builder.AppendLine(Constants.Constants.CreateDecksStatement);
-            builder.AppendLine();
-            builder.AppendLine(Constants.Constants.CreateDeckListsStatement);
-            builder.AppendLine();
-        }
 
         for (int i = 0; i < fileNames.Length; i++)
         {
@@ -52,9 +38,7 @@ internal static class Program
 
             Console.Write("[{1}] Processing {0}: ", fileNameNoExtension, i);
 
-            bool returnValue = processSlim
-                ? ProcessDeckSlim(builder, pathFileName, fileNameNoExtension)
-                : ProcessDeck(builder, pathFileName, fileNameNoExtension);
+            bool returnValue = ProcessDeck(builder, pathFileName, fileNameNoExtension);
 
             if (!returnValue)
                 continue;
@@ -83,7 +67,7 @@ internal static class Program
                 }
             }
 
-            if (wasSuccessful && archiveFiles)
+            if (wasSuccessful)
             {
                 try
                 {
@@ -110,45 +94,16 @@ internal static class Program
         Console.WriteLine("Done.");
     }
 
-    private static void Process_Helper(StringBuilder builder, DataCommon data)
-    {
-        builder.Append(Constants.Constants.InsertDecksStatement);
-        builder.Append($"\t\"{data.Code}\",\n");
-        builder.Append($"\t\"{data.FileName}\",\n");
-        builder.Append($"\t\"{data.Name}\",\n");
-        builder.Append($"\t\"{data.ReleaseDate}\",\n");
-        builder.Append($"\t\"{data.Type}\"\n");
-        builder.AppendLine(");");
-        builder.AppendLine();
-    }
-
-    private static void ProcessDeckSlim_Helper(StringBuilder builder, List<CardDeckSlim> cards)
-    {
-        foreach (var card in cards)
-        {
-            builder.Append(Constants.Constants.InsertDeckListsStatement);
-            builder.Append($"\t{card.Count},\n");
-            builder.Append($"\t\"{card.FileName}\",\n");
-            builder.Append($"\t\"{card.IsCommander}\",\n");
-            builder.Append($"\t\"{card.IsFoil}\",\n");
-            builder.Append($"\t\"{card.IsMainBoard}\",\n");
-            builder.Append($"\t\"{card.IsSideBoard}\",\n");
-            builder.Append($"\t\"{card.Uuid}\"\n");
-            builder.AppendLine(");");
-            builder.AppendLine();
-        }
-    }
-
-    private static bool ProcessDeckSlim(StringBuilder builder, string pathFileName, string fileNameNoExtension)
+    private static bool ProcessDeck(StringBuilder builder, string pathFileName, string fileNameNoExtension)
     {
         if (File.Exists(pathFileName))
         {
             string jsonString = File.ReadAllText(pathFileName);
-            DeckSlim deck;
+            Deck deck;
 
             try
             {
-                deck = JsonSerializer.Deserialize<DeckSlim>(jsonString,
+                deck = JsonSerializer.Deserialize<Deck>(jsonString,
                     new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
             }
             catch (JsonException ex)
@@ -177,28 +132,35 @@ internal static class Program
                 card.IsSideBoard = true;
             }
 
-            Process_Helper(builder, deck.Data);
-            ProcessDeckSlim_Helper(builder, deck.Data.Commander);
-            ProcessDeckSlim_Helper(builder, deck.Data.MainBoard);
-            ProcessDeckSlim_Helper(builder, deck.Data.SideBoard);
+            builder.Append(Statements.InsertDecksStatement);
+            builder.Append($"\t\"{deck.Data.Code}\",\n");
+            builder.Append($"\t\"{deck.Data.FileName}\",\n");
+            builder.Append($"\t\"{deck.Data.Name}\",\n");
+            builder.Append($"\t\"{deck.Data.ReleaseDate}\",\n");
+            builder.Append($"\t\"{deck.Data.Type}\"\n");
+            builder.AppendLine(");");
+            builder.AppendLine();
+            
+            ProcessDeck_Helper(builder, deck.Data.Commander);
+            ProcessDeck_Helper(builder, deck.Data.MainBoard);
+            ProcessDeck_Helper(builder, deck.Data.SideBoard);
 
             return true;
         }
         else
         {
             Console.WriteLine("File Not Found");
-
             return false;
         }
     }
-
+    
     private static void ProcessDeck_Helper(StringBuilder builder, List<CardDeck> cards)
     {
         foreach (var card in cards)
         {
             #region Insert Into Cards
 
-            builder.Append(Constants.Constants.InsertCardsStatement);
+            builder.Append(Statements.InsertCardsStatement);
 
             if (string.IsNullOrWhiteSpace(card.Artist))
                 builder.AppendLine("\tnull,");
@@ -605,7 +567,7 @@ internal static class Program
             {
                 foreach (var foreignData in card.ForeignData)
                 {
-                    builder.Append(Constants.Constants.InsertForeignDataStatement);
+                    builder.Append(Statements.InsertForeignDataStatement);
 
                     if (string.IsNullOrWhiteSpace(foreignData.FaceName))
                         builder.AppendLine("\tnull,");
@@ -653,7 +615,7 @@ internal static class Program
 
             if (card.Identifiers != null)
             {
-                builder.Append(Constants.Constants.InsertIdentifiersStatement);
+                builder.Append(Statements.InsertIdentifiersStatement);
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardKingdomEtchedId))
                     builder.AppendLine("\tnull,");
@@ -757,7 +719,7 @@ internal static class Program
 
             if (card.Legalities != null)
             {
-                builder.Append(Constants.Constants.InsertLegalitiesStatement);
+                builder.Append(Statements.InsertLegalitiesStatement);
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Alchemy))
                     builder.AppendLine("\tnull,");
@@ -876,7 +838,7 @@ internal static class Program
 
             if (card.PurchaseUrls != null)
             {
-                builder.Append(Constants.Constants.InsertPurchaseUrlsStatement);
+                builder.Append(Statements.InsertPurchaseUrlsStatement);
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardKingdom))
                     builder.AppendLine("\tnull,");
@@ -922,7 +884,7 @@ internal static class Program
             {
                 foreach (var ruling in card.Rulings)
                 {
-                    builder.Append(Constants.Constants.InsertRulingsStatement);
+                    builder.Append(Statements.InsertRulingsStatement);
 
                     if (string.IsNullOrWhiteSpace(ruling.Date))
                         builder.AppendLine("\tnull,");
@@ -942,58 +904,6 @@ internal static class Program
             }
 
             #endregion
-        }
-    }
-
-    private static bool ProcessDeck(StringBuilder builder, string pathFileName, string fileNameNoExtension)
-    {
-        if (File.Exists(pathFileName))
-        {
-            string jsonString = File.ReadAllText(pathFileName);
-            Deck deck;
-
-            try
-            {
-                deck = JsonSerializer.Deserialize<Deck>(jsonString,
-                    new JsonSerializerOptions() { PropertyNameCaseInsensitive = true });
-            }
-            catch (JsonException ex)
-            {
-                Console.WriteLine(ex.Message);
-                return false;
-            }
-
-            deck.Data.FileName = fileNameNoExtension;
-
-            foreach (var card in deck.Data.Commander)
-            {
-                card.FileName = fileNameNoExtension;
-                card.IsCommander = true;
-            }
-
-            foreach (var card in deck.Data.MainBoard)
-            {
-                card.FileName = fileNameNoExtension;
-                card.IsMainBoard = true;
-            }
-
-            foreach (var card in deck.Data.SideBoard)
-            {
-                card.FileName = fileNameNoExtension;
-                card.IsSideBoard = true;
-            }
-
-            Process_Helper(builder, deck.Data);
-            ProcessDeck_Helper(builder, deck.Data.Commander);
-            ProcessDeck_Helper(builder, deck.Data.MainBoard);
-            ProcessDeck_Helper(builder, deck.Data.SideBoard);
-
-            return true;
-        }
-        else
-        {
-            Console.WriteLine("File Not Found");
-            return false;
         }
     }
 }

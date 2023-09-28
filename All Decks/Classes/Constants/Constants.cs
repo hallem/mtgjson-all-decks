@@ -1,21 +1,11 @@
-﻿namespace AllDecks.Constants
+﻿namespace All_Decks.Classes.Constants;
+
+// ReSharper disable UseRawString
+// ReSharper disable InconsistentNaming
+public static class Statements
 {
-	// ReSharper disable UseRawString
-	public static class Constants
-	{
-		public const string CreateDecksStatement = 
-@"CREATE TABLE IF NOT EXISTS ""decks"" (
-	""code"" text NOT NULL,
-	""fileName"" text NOT NULL,
-	""name"" text NOT NULL,
-	""releaseDate"" text,
-	""type"" text NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS decks_fileName ON ""decks"" (""fileName"");";
-
-		public const string InsertDecksStatement =
-@"INSERT INTO decks (
+	public const string InsertDecksStatement =
+		@"INSERT INTO decks (
 	""code"",
 	""fileName"",
 	""name"",
@@ -23,36 +13,8 @@ CREATE INDEX IF NOT EXISTS decks_fileName ON ""decks"" (""fileName"");";
 	""type""
 ) VALUES (
 ";
-
-		public const string CreateDeckListsStatement =
-@"CREATE TABLE IF NOT EXISTS ""deckLists"" (
-	""count"" integer,
-	""fileName"" text,
-	""isCommander"" boolean,
-	""isFoil"" boolean,
-	""isMainBoard"" boolean,
-	""isSideBoard"" boolean,
-	""uuid"" varchar(36) NOT NULL
-);
-
-CREATE INDEX IF NOT EXISTS deckLists_fileName ON ""deckLists"" (""fileName"");
-
-CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
-
-        public const string InsertDeckListsStatement =
-@"INSERT INTO deckLists (
-	""count"",
-	""fileName"",
-	""isCommander"",
-	""isFoil"",
-	""isMainBoard"",
-	""isSideBoard"",
-	""uuid""
-) VALUES (
-";
-
-		public const string InsertCardsStatement =
-@"INSERT INTO cards (
+	public const string InsertCardsStatement =
+		@"INSERT INTO cards (
 	""artist"",
 	""artistIds"",
 	""asciiName"",
@@ -140,8 +102,8 @@ CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
 ) VALUES (
 ";
 
-		public const string InsertForeignDataStatement =
-@"INSERT INTO cardForeignData (
+	public const string InsertForeignDataStatement =
+		@"INSERT INTO cardForeignData (
 	""faceName"",
 	""flavorText"",
 	""language"",
@@ -152,8 +114,8 @@ CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
 	""uuid""
 ) VALUES (
 ";
-		public const string InsertIdentifiersStatement =
-@"INSERT INTO cardIdentifiers (
+	public const string InsertIdentifiersStatement =
+		@"INSERT INTO cardIdentifiers (
 	""cardKingdomEtchedId"",
 	""cardKingdomFoilId"",
 	""cardKingdomId"",
@@ -176,8 +138,8 @@ CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
 ) VALUES (
 ";
 
-		public const string InsertLegalitiesStatement =
-@"INSERT INTO cardLegalities (
+	public const string InsertLegalitiesStatement =
+		@"INSERT INTO cardLegalities (
 	""alchemy"",
 	""brawl"",
 	""commander"",
@@ -202,8 +164,8 @@ CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
 	""vintage""
 ) VALUES (
 ";
-		public const string InsertPurchaseUrlsStatement =
-@"INSERT INTO cardPurchaseUrls (
+	public const string InsertPurchaseUrlsStatement =
+		@"INSERT INTO cardPurchaseUrls (
 	""cardKingdom"",
 	""cardKingdomEtched"",
 	""cardKingdomFoil"",
@@ -214,13 +176,11 @@ CREATE INDEX IF NOT EXISTS deckLists_uuid ON ""deckLists"" (""uuid"");";
 ) VALUES (
 ";
 
-		public const string InsertRulingsStatement =
-@"INSERT INTO cardRulings (
+	public const string InsertRulingsStatement =
+		@"INSERT INTO cardRulings (
 	""date"",
 	""text"",
 	""uuid""
 ) VALUES (
 ";
-	}
 }
-
