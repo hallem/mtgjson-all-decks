@@ -10,7 +10,8 @@ using AllDecks.Objects;
 2) Write code to insert the deck information into the decks table -- DONE
 3) See if #2 eliminates the name encoding issues -- IT DOES
 4) Find a way to centralize the json parse code into one method
-5) Add create table logic controlled by a flag for the All Printings DB
+5) Add create table logic controlled by a flag for the All Printings DB -- DONE
+6) Add support for command line arguments
 */
 
 namespace AllDecks;
@@ -22,11 +23,12 @@ internal static class Program
         const bool processSlim = true;
         const bool archiveFiles = false;
         const bool createTables = true;
-        const bool useSeperateDB = false;
+        // ReSharper disable once InconsistentNaming
+        const bool useSeparateDB = false;
         const string path = "../../../../data/AllDeckFiles";
         string[] fileNames = Directory.GetFiles(path, "*.json").OrderBy(f => f).ToArray();
 
-        SQLiteConnection connection = useSeperateDB
+        SQLiteConnection connection = useSeparateDB
             ? new SQLiteConnection("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;")
             : new SQLiteConnection("DataSource=../../../../data/AllPrintings.sqlite;Version=3;New=False;");
 
