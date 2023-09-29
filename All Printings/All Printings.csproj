@@ -9,13 +9,19 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Include="..\Common\Meta.cs">
-        <Link>Classes\Meta.cs</Link>
-      </Compile>
+      <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+      <Compile Include="..\Common\Classes\Meta.cs">
+        <Link>Classes\Meta.cs</Link>
+      </Compile>
+      <Compile Include="..\Common\Constants\CreateDecks.cs">
+        <Link>Classes\Constants\CreateDecks.cs</Link>
+      </Compile>
+      <Compile Include="..\Common\Constants\InsertDecks.cs">
+        <Link>Constants\InsertDecks.cs</Link>
+      </Compile>
     </ItemGroup>
 
 </Project>

@@ -2,18 +2,12 @@
 using System.Data.SQLite;
 using System.Text;
 using System.Text.Json;
+using All_Deck_Files.Common.Classes.Constants;
 using All_Decks.Classes;
 using All_Decks.Classes.Objects;
 using All_Decks.Classes.Constants;
 
-/*
-1) Write code to work with the slim data -- DONE
-2) Write code to insert the deck information into the decks table -- DONE
-3) See if #2 eliminates the name encoding issues -- IT DOES
-4) Find a way to centralize the json parse code into one method
-5) Add create table logic controlled by a flag for the All Printings DB -- DONE
-6) Add support for command line arguments
-*/
+// ReSharper disable InvertIf
 
 namespace All_Decks;
 
@@ -23,13 +17,29 @@ internal static class Program
     {
         const string path = "../../../../data/AllDeckFiles";
         string[] fileNames = Directory.GetFiles(path, "*.json").OrderBy(f => f).ToArray();
-
-        SQLiteConnection connection = new ("DataSource=../../../../data/Decks.sqlite;Version=3;New=False;");
+        SQLiteConnection connection = new ("DataSource=../../../../data/Decks.sqlite;Version=3;");
 
         connection.Open();
 
         bool wasSuccessful = true;
         StringBuilder builder = new();
+
+        builder.AppendLine(Statements.CreateMeta);
+        builder.AppendLine();
+        builder.AppendLine(CommonStatements.CreateDecks);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreateCards);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreateForeignData);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreateIdentifiers);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreateLegalities);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreatePurchaseUrls);
+        builder.AppendLine();
+        builder.AppendLine(Statements.CreateRulings);
+        builder.AppendLine();
 
         for (int i = 0; i < fileNames.Length; i++)
         {
@@ -38,7 +48,7 @@ internal static class Program
 
             Console.Write("[{1}] Processing {0}: ", fileNameNoExtension, i);
 
-            bool returnValue = ProcessDeck(builder, pathFileName, fileNameNoExtension);
+            bool returnValue = ProcessDeck(builder, pathFileName, fileNameNoExtension, i == 0);
 
             if (!returnValue)
                 continue;
@@ -94,7 +104,7 @@ internal static class Program
         Console.WriteLine("Done.");
     }
 
-    private static bool ProcessDeck(StringBuilder builder, string pathFileName, string fileNameNoExtension)
+    private static bool ProcessDeck(StringBuilder builder, string pathFileName, string fileNameNoExtension, bool insertMeta)
     {
         if (File.Exists(pathFileName))
         {
@@ -132,12 +142,21 @@ internal static class Program
                 card.IsSideBoard = true;
             }
 
-            builder.Append(Statements.InsertDecksStatement);
-            builder.Append($"\t\"{deck.Data.Code}\",\n");
-            builder.Append($"\t\"{deck.Data.FileName}\",\n");
-            builder.Append($"\t\"{deck.Data.Name}\",\n");
-            builder.Append($"\t\"{deck.Data.ReleaseDate}\",\n");
-            builder.Append($"\t\"{deck.Data.Type}\"\n");
+            if (insertMeta)
+            {
+                builder.AppendLine(Statements.InsertMeta);
+                builder.AppendLine($"\t\"{deck.Meta.Date}\",");
+                builder.AppendLine($"\t\"{deck.Meta.Version}\",");
+                builder.AppendLine(");");
+                builder.AppendLine();
+            }
+
+            builder.AppendLine(CommonStatements.InsertDecks);
+            builder.AppendLine($"\t\"{deck.Data.Code}\",");
+            builder.AppendLine($"\t\"{deck.Data.FileName}\",");
+            builder.AppendLine($"\t\"{deck.Data.Name}\",");
+            builder.AppendLine($"\t\"{deck.Data.ReleaseDate}\",");
+            builder.AppendLine($"\t\"{deck.Data.Type}\"");
             builder.AppendLine(");");
             builder.AppendLine();
             
@@ -160,7 +179,7 @@ internal static class Program
         {
             #region Insert Into Cards
 
-            builder.Append(Statements.InsertCardsStatement);
+            builder.Append(Statements.InsertCards);
 
             if (string.IsNullOrWhiteSpace(card.Artist))
                 builder.AppendLine("\tnull,");
@@ -567,7 +586,7 @@ internal static class Program
             {
                 foreach (var foreignData in card.ForeignData)
                 {
-                    builder.Append(Statements.InsertForeignDataStatement);
+                    builder.Append(Statements.InsertForeignData);
 
                     if (string.IsNullOrWhiteSpace(foreignData.FaceName))
                         builder.AppendLine("\tnull,");
@@ -615,7 +634,7 @@ internal static class Program
 
             if (card.Identifiers != null)
             {
-                builder.Append(Statements.InsertIdentifiersStatement);
+                builder.Append(Statements.InsertIdentifiers);
 
                 if (string.IsNullOrWhiteSpace(card.Identifiers.CardKingdomEtchedId))
                     builder.AppendLine("\tnull,");
@@ -719,7 +738,7 @@ internal static class Program
 
             if (card.Legalities != null)
             {
-                builder.Append(Statements.InsertLegalitiesStatement);
+                builder.Append(Statements.InsertLegalities);
 
                 if (string.IsNullOrWhiteSpace(card.Legalities.Alchemy))
                     builder.AppendLine("\tnull,");
@@ -838,7 +857,7 @@ internal static class Program
 
             if (card.PurchaseUrls != null)
             {
-                builder.Append(Statements.InsertPurchaseUrlsStatement);
+                builder.Append(Statements.InsertPurchaseUrls);
 
                 if (string.IsNullOrWhiteSpace(card.PurchaseUrls.CardKingdom))
                     builder.AppendLine("\tnull,");
@@ -884,7 +903,7 @@ internal static class Program
             {
                 foreach (var ruling in card.Rulings)
                 {
-                    builder.Append(Statements.InsertRulingsStatement);
+                    builder.Append(Statements.InsertRulings);
 
                     if (string.IsNullOrWhiteSpace(ruling.Date))
                         builder.AppendLine("\tnull,");

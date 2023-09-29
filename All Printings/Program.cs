@@ -2,8 +2,9 @@
 using System.Data.SQLite;
 using System.Text;
 using System.Text.Json;
+using All_Deck_Files.Common.Classes.Constants;
 using All_Printings.Classes;
-using All_Printings.Constants;
+using All_Printings.Classes.Constants;
 
 namespace All_Printings;
 
@@ -20,9 +21,9 @@ internal static class Program
         bool wasSuccessful = true;
         StringBuilder builder = new();
         
-        builder.AppendLine(Statements.CreateDecksStatement);
+        builder.AppendLine(CommonStatements.CreateDecks);
         builder.AppendLine();
-        builder.AppendLine(Statements.CreateDeckListsStatement);
+        builder.AppendLine(Statements.CreateDeckLists);
         builder.AppendLine();
 
         for (int i = 0; i < fileNames.Length; i++)
@@ -126,7 +127,7 @@ internal static class Program
                 card.IsSideBoard = true;
             }
 
-            builder.Append(Statements.InsertDecksStatement);
+            builder.Append(CommonStatements.InsertDecks);
             builder.Append($"\t\"{deck.Data.Code}\",\n");
             builder.Append($"\t\"{deck.Data.FileName}\",\n");
             builder.Append($"\t\"{deck.Data.Name}\",\n");
@@ -153,7 +154,7 @@ internal static class Program
     {
         foreach (var card in cards)
         {
-            builder.Append(Statements.InsertDeckListsStatement);
+            builder.Append(Statements.InsertDeckLists);
             builder.Append($"\t{card.Count},\n");
             builder.Append($"\t\"{card.FileName}\",\n");
             builder.Append($"\t\"{card.IsCommander}\",\n");
