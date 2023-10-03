@@ -7,6 +7,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "All Decks", "All Decks\All 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "All Printings", "All Printings\All Printings.csproj", "{F8D5B745-3794-43F2-ACCF-AD25469D0786}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Combine All Decks", "Combine All Decks\Combine All Decks.csproj", "{C5BB8BD7-AB4E-403B-A910-82D653516237}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Combine All Printings", "Combine All Printings\Combine All Printings.csproj", "{814ECA37-96E8-4D19-82F5-B29C2C3F735D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +25,14 @@ Global
 		{F8D5B745-3794-43F2-ACCF-AD25469D0786}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F8D5B745-3794-43F2-ACCF-AD25469D0786}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F8D5B745-3794-43F2-ACCF-AD25469D0786}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C5BB8BD7-AB4E-403B-A910-82D653516237}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C5BB8BD7-AB4E-403B-A910-82D653516237}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C5BB8BD7-AB4E-403B-A910-82D653516237}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C5BB8BD7-AB4E-403B-A910-82D653516237}.Release|Any CPU.Build.0 = Release|Any CPU
+		{814ECA37-96E8-4D19-82F5-B29C2C3F735D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{814ECA37-96E8-4D19-82F5-B29C2C3F735D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{814ECA37-96E8-4D19-82F5-B29C2C3F735D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{814ECA37-96E8-4D19-82F5-B29C2C3F735D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

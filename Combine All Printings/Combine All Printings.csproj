@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net7.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>disable</Nullable>
+        <RootNamespace>Combine</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\All Decks\Classes\Helpers\CsvList.cs">
+        <Link>Classes\Helpers\CsvList.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Helpers\LowercaseNamingPolicy.cs">
+        <Link>Classes\Helpers\LowercaseNamingPolicy.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\CardDeck.cs">
+        <Link>Classes\Objects\CardDeck.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\ForeignData.cs">
+        <Link>Classes\Objects\ForeignData.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\Identifiers.cs">
+        <Link>Classes\Objects\Identifiers.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\LeadershipSkills.cs">
+        <Link>Classes\Objects\LeadershipSkills.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\Legalities.cs">
+        <Link>Classes\Objects\Legalities.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\PurchaseUrls.cs">
+        <Link>Classes\Objects\PurchaseUrls.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\RelatedCards.cs">
+        <Link>Classes\Objects\RelatedCards.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\Rulings.cs">
+        <Link>Classes\Objects\Rulings.cs</Link>
+      </Compile>
+      <Compile Include="..\All Decks\Classes\Objects\SourceProducts.cs">
+        <Link>Classes\Objects\SourceProducts.cs</Link>
+      </Compile>
+      <Compile Include="..\All Printings\Classes\CardDeck.cs">
+        <Link>Classes\CardDeck.cs</Link>
+      </Compile>
+      <Compile Include="..\All Printings\Classes\Deck.cs">
+        <Link>Classes\Deck.cs</Link>
+      </Compile>
+      <Compile Include="..\Common\Classes\Meta.cs">
+        <Link>Classes\Meta.cs</Link>
+      </Compile>
+    </ItemGroup>
+
+</Project>
